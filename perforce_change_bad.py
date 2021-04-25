@@ -19,7 +19,7 @@ def badChange():
         p4.run_sync('-f')
 
         # Make a change to src files
-        os.rename("root-ws/src/file2.txt", "root-ws/src/file3.txt")
+        os.rename(f"{workspaceDir}/src/file2.txt", f"{workspaceDir}/src/file3.txt")
 
         # Reconcile and submit any changes required
         perforceSafeSubmit(p4, f"//{remoteRoot}/src/...", "This change introduces an error")

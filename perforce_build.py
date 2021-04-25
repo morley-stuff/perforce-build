@@ -4,7 +4,6 @@ import shutil
 import subprocess
 import smtplib, ssl
 import json
-from sharedfuncs import loadConfig, perforceInit
 from P4 import P4, P4Exception
 from email.message import EmailMessage
 
@@ -65,13 +64,13 @@ def constructFailureNotification(p4, buildResult):
 def sendEmail(config, subject, content):
     # Construct msg
     msg            = EmailMessage()
-    msg['From']    = sender
-    msg['To']      = ', '.join(recipients)
+    msg['From']    = config["emailAddress"]
+    msg['To']      = ', '.join(config['defaultRecipients'])
     msg['Subject'] = subject
-    msg.set_content(content)
+    msg.set_content(str(content))
 
     # Send via email server
-    context     = ssl.create_default_context()
+    context = ssl.create_default_context()
     with smtplib.SMTP_SSL(config["smtpServer"], config["smtpPort"], context=context) as server:
         server.login(config["emailAddress"], config["emailPassword"])
         server.send_message(msg)
@@ -82,8 +81,6 @@ def getRecentChanges(p4):
     lastBinChange = p4.run_changes("-s", "submitted", "-m", "1", f"//{remoteRoot}/bin/...")[0]
     # List changes since last /bin change
     recentChanges = p4.run_changes(f"//{remoteRoot}/...@>{lastBinChange['change']}")
-
-    print("Last built at change: ", lastBinChange['change'], '\n')
     return recentChanges    
 
 # p4python passes warnings as an exception
@@ -143,10 +140,8 @@ def build():
         if(buildResult.returncode != 0):
             print("Build Failure")
             print("Sending notification to default recipients...")
-            content    = constructFailureNotification(p4, buildResult)
+            content = constructFailureNotification(p4, buildResult)
             sendEmail(config, "Build Failure", content)
-            mailServer = smtpLogin(config['smtpServer'], config['smtpPort'], config['emailAddress'], config['emailPassword'])
-            sendEmail(mailServer, config['emailAddress'], config['defaultRecipients', "Build Failure", content])
         else:
             # Submit any changes in bin directory
             print("Build Success")
