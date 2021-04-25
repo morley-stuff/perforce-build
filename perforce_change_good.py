@@ -1,10 +1,9 @@
-import pprint
-import os
-import shutil
-import subprocess
-import json
-from sharedfuncs import loadConfig, perforceInit
+from perforce_build import loadConfig, perforceLogin, setupClient, perforceSafeSubmit
+from perforce_build import clientTemplate, workspaceDir, remoteRoot
 from P4 import P4, P4Exception
+
+def submitAllChanges(p4, changeDesc):
+    perforceSafeSubmit(p4, f"//{remoteRoot}/...", changeDesc)
 
 def goodChange():
 
@@ -12,31 +11,27 @@ def goodChange():
     config = loadConfig("config.json")
 
     try:
-        # Perforce login and initialize workspace
-        p4 = perforceInit(config)
+        # Login to perforce with details from config
+        p4 = perforceLogin(config)
+
+        # Setup client
+        setupClient(p4, clientTemplate, workspaceDir)
+
+        # Sync workspace with server
+        p4.run_sync('-f')
 
         # Make a change to src files
-        f = open("root-ws/src/file1.txt", 'a')
+        f = open(f"{workspaceDir}/src/file1.txt", 'a')
         f.write("This is a good change\n")
         f.close()
 
-        # Reconcile src directory, submitting any changes
-        try:
-            p4.run_reconcile("//depot/src/...")
-            change = p4.fetch_change()
-            change._description = "This change updates src files safely"
-            p4.run_submit(change)
-            print("Submitted safe changes")
-        except P4Exception as e:
-            # Warning "No files to reconcile" throws an exception so let's ignore it
-            #   and print some nicer output.
-            if 'Error' not in str(e):
-                print("No changes to submit")
-            else:
-                raise(e)
+        # Reconcile and submit any changes required
+        perforceSafeSubmit(p4, f"//{remoteRoot}/src/...", "This change updates src files safely")
         
         # Disconnect
         p4.disconnect()
+
+        print("Valid change submitted")
 
     except P4Exception as e:
         print(e)

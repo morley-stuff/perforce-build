@@ -1,9 +1,6 @@
-import pprint
 import os
-import shutil
-import subprocess
-import json
-from sharedfuncs import loadConfig, perforceInit
+from perforce_build import loadConfig, perforceLogin, setupClient, perforceSafeSubmit
+from perforce_build import clientTemplate, workspaceDir, remoteRoot
 from P4 import P4, P4Exception
 
 def fixChange():
@@ -11,29 +8,25 @@ def fixChange():
     config = loadConfig("config.json")
 
     try:
-        # Perforce login and initialize workspace
-        p4 = perforceInit(config)
+        # Login to perforce with details from config
+        p4 = perforceLogin(config)
+
+        # Setup client
+        setupClient(p4, clientTemplate, workspaceDir)
+
+        # Sync workspace with server
+        p4.run_sync('-f')
 
         # Make a change to src files
         os.rename("root-ws/src/file3.txt", "root-ws/src/file2.txt")
 
-        # Reconcile src directory, submitting any changes
-        try:
-            p4.run_reconcile("//depot/src/...")
-            change = p4.fetch_change()
-            change._description = "This change fixes the error introduced previously"
-            p4.run_submit(change)
-            print("Submitted a change that will fix the build")
-        except P4Exception as e:
-            # Warning "No files to reconcile" throws an exception so let's ignore it
-            #   and print some nicer output.
-            if 'Error' not in str(e):
-                print("No changes to submit")
-            else:
-                raise(e)
+        # Reconcile and submit any changes required
+        perforceSafeSubmit(p4, f"//{remoteRoot}/src/...", "This change fixes the error introduced previously")
         
         # Disconnect
         p4.disconnect()
+
+        print("Submitted a change that will fix the build")
 
     except P4Exception as e:
         print(e)

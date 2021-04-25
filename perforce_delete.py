@@ -1,9 +1,6 @@
-import pprint
-import shutil
-import os
-import json
+from perforce_build import loadConfig, perforceLogin, setupClient, perforceSafeSubmit
+from perforce_build import clientTemplate, workspaceDir, remoteRoot
 from P4 import P4, P4Exception
-from sharedfuncs import loadConfig, perforceInit
 
 def perforceDelete():
 # Load information from config files
@@ -14,7 +11,7 @@ def perforceDelete():
         p4 = perforceInit(config)
 
         # Delete everything
-        p4.run_delete('//depot/...')
+        p4.run_delete(f"//{remoteRoot}/...")
         change = p4.fetch_change()
         change._description = "This change deletes everything in the depot"
         p4.run_submit(change)
@@ -26,8 +23,8 @@ def perforceDelete():
     except P4Exception as e:
         print(e)
 
-    if os.path.exists('root-ws'):
-        shutil.rmtree('root-ws')
+    if os.path.exists(remoteRoot):
+        shutil.rmtree(remoteRoot)
 
 if __name__ == "__main__":
     perforceDelete()

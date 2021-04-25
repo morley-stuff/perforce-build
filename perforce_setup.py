@@ -1,14 +1,11 @@
 import os, shutil
 from P4 import P4, P4Exception
-from perforce_build import loadConfig, perforceLogin, perforceSafeSubmit
+from perforce_build import loadConfig, perforceLogin, setupClient, perforceSafeSubmit
 from perforce_build import clientTemplate, workspaceDir, remoteRoot
 
 clientTemplate = 'build'
 workspaceDir     = 'workspace'
 remoteRoot       = 'depot'
-
-def submitAllChanges(p4, changeDesc):
-    perforceSafeSubmit(p4, f"//{remoteRoot}/...", changeDesc)
 
 def setupPerforce():
 
@@ -29,10 +26,8 @@ def setupPerforce():
         except P4Exception as e:
             print(e)
 
-        # Create a local client from the build template
-        client = p4.fetch_client('-t', clientTemplate)
-        client['Root'] = f"{os.getcwd()}/{workspaceDir}"
-        p4.save_client(client)
+        # Setup client
+        setupClient(p4, clientTemplate, workspaceDir)
 
         # Delete workspace if it exists
         if os.path.exists(workspaceDir):
@@ -41,7 +36,7 @@ def setupPerforce():
         shutil.copytree('init_depo', workspaceDir)
 
         # Reconcile and submit any changes required
-        submitAllChanges(p4, "Setting to initial state")
+        perforceSafeSubmit(p4, f"//{remoteRoot}/...", "Setting to initial state")
 
         # Close perforce connection
         p4.disconnect()

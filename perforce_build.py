@@ -97,6 +97,7 @@ def perforceSafeSubmit(p4, reconcilePattern, changeDesc):
     except P4Exception as e:
         # Ignore warning 'no file(s) to reconcile.'
         if 'no file(s) to reconcile' in str(e):
+            print(str(e))
             print("No changes to submit")
         else:
             raise(e)

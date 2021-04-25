@@ -5,8 +5,6 @@ import perforce_change_bad
 import perforce_change_fix
 
 def integrationTest():
-    print("\n===================\nDELETE\n")
-    perforce_delete.perforceDelete()
     print("\n===================\nSETUP\n")
     perforce_setup.setupPerforce()
     print("\n===================\nBUILD 1\n")
