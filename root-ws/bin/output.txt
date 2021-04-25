@@ -1,2 +1,0 @@
-This is the contents of file 1This is a good change
-This is the contents of file 2Fri 23 Apr 2021 22:11:10 CEST

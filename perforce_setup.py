@@ -19,6 +19,7 @@ def setupPerforce():
         os.makedirs('root-ws/bin')
         # build script
         shutil.copyfile("resources/build.sh",  "root-ws/build.sh")
+        shutil.copyfile("resources/build.bat",  "root-ws/build.bat")
         os.chmod("root-ws/build.sh", 509) # execute permission for script
         # src files
         shutil.copyfile("resources/file1.txt", "root-ws/src/file1.txt")

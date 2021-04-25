@@ -32,6 +32,7 @@ def perforceInit(config):
         client['Root'] = os.getcwd() + '/root-ws'
         client['View'] = '//depot/... //root-ws/...'
         client['Options'] = 'allwrite noclobber nocompress unlocked nomodtime normdir'
+        client['Host'] = ""
         p4.save_client(client)
 
         # Sync workspace with server

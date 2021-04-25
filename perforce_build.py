@@ -74,6 +74,11 @@ def build():
         # Run build
         if (os.name == 'posix'):
             buildResult = subprocess.run(["sh", "./build.sh"], cwd="root-ws", capture_output=True)
+        elif (os.name == 'nt'):
+            buildResult = subprocess.run(["cmd", "/C", "build.bat"], cwd="root-ws", capture_output=True)
+
+        pprint.pprint(buildResult)
+
 
         # Check status of build execution
         if(buildResult.returncode != 0):
