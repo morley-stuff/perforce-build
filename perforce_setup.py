@@ -1,13 +1,14 @@
-import pprint
-import os
-import shutil
-import json
+import os, shutil
 from P4 import P4, P4Exception
-from sharedfuncs import loadConfig, perforceInit, perforceLogin
+from perforce_build import loadConfig, perforceLogin, perforceSafeSubmit
+from perforce_build import clientTemplate, workspaceDir, remoteRoot
 
-clientTemplateId = 'build'
+clientTemplate = 'build'
 workspaceDir     = 'workspace'
 remoteRoot       = 'depot'
+
+def submitAllChanges(p4, changeDesc):
+    perforceSafeSubmit(p4, f"//{remoteRoot}/...", changeDesc)
 
 def setupPerforce():
 
@@ -20,16 +21,16 @@ def setupPerforce():
 
         # Ensure the build client exists for templating
         try:
-            clientTemplate = p4.fetch_client(clientTemplateId)
-            clientTemplate['Host'] = ''
-            clientTemplate['View'] = f"//{remoteRoot}/... //{clientTemplateId}/..."
-            clientTemplate['Options'] = 'allwrite noclobber nocompress unlocked nomodtime normdir'
-            p4.save_client(clientTemplate)
+            template = p4.fetch_client(clientTemplate)
+            template['Host'] = ''
+            template['View'] = f"//{remoteRoot}/... //{clientTemplate}/..."
+            template['Options'] = 'allwrite noclobber nocompress unlocked nomodtime normdir'
+            p4.save_client(template)
         except P4Exception as e:
             print(e)
 
         # Create a local client from the build template
-        client = p4.fetch_client('-t', clientTemplateId)
+        client = p4.fetch_client('-t', clientTemplate)
         client['Root'] = f"{os.getcwd()}/{workspaceDir}"
         p4.save_client(client)
 
@@ -40,10 +41,7 @@ def setupPerforce():
         shutil.copytree('init_depo', workspaceDir)
 
         # Reconcile and submit any changes required
-        p4.run_reconcile(f"//{remoteRoot}/...")
-        change = p4.fetch_change()
-        change._description = "Setting to initial state"
-        p4.run_submit(change)
+        submitAllChanges(p4, "Setting to initial state")
 
         # Close perforce connection
         p4.disconnect()
