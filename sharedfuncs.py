@@ -8,6 +8,26 @@ def loadConfig(configFilename):
     configFile.close()
     return config
 
+# Login using details specified in config
+def perforceLogin(config):
+    p4 = P4()
+    p4.port     = config["perforcePort"]
+    p4.user     = config["perforceUser"]
+    p4.password = config["perforcePassword"]
+    p4.client   = config["perforceClient"]
+
+    try:
+        p4.connect()
+        p4.run_login()
+    except P4Exception as e:
+        print("Error during perforce login:")
+        print(e)
+
+    return p4
+    
+    
+
+
 # Do perforce login and client/workspace setup
 def perforceInit(config):
     # Build session object

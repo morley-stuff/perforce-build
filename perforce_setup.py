@@ -3,7 +3,11 @@ import os
 import shutil
 import json
 from P4 import P4, P4Exception
-from sharedfuncs import loadConfig, perforceInit
+from sharedfuncs import loadConfig, perforceInit, perforceLogin
+
+clientTemplateId = 'build'
+workspaceDir     = 'workspace'
+remoteRoot       = 'depot'
 
 def setupPerforce():
 
@@ -11,31 +15,37 @@ def setupPerforce():
     config = loadConfig("config.json")
 
     try:
-        # Perforce login and initialize workspace
-        p4 = perforceInit(config)
+        # Login to perforce with details from config
+        p4 = perforceLogin(config)
 
-        # Create directory layout
-        os.makedirs('root-ws/src')
-        os.makedirs('root-ws/bin')
-        # build script
-        shutil.copyfile("resources/build.sh",  "root-ws/build.sh")
-        shutil.copyfile("resources/build.bat",  "root-ws/build.bat")
-        os.chmod("root-ws/build.sh", 509) # execute permission for script
-        # src files
-        shutil.copyfile("resources/file1.txt", "root-ws/src/file1.txt")
-        shutil.copyfile("resources/file2.txt", "root-ws/src/file2.txt")
+        # Ensure the build client exists for templating
+        try:
+            clientTemplate = p4.fetch_client(clientTemplateId)
+            clientTemplate['Host'] = ''
+            clientTemplate['View'] = f"//{remoteRoot}/... //{clientTemplateId}/..."
+            clientTemplate['Options'] = 'allwrite noclobber nocompress unlocked nomodtime normdir'
+            p4.save_client(clientTemplate)
+        except P4Exception as e:
+            print(e)
 
-        # Add new files
-        p4.run_add('root-ws/build.sh')
-        p4.run_add('root-ws/src/file1.txt')
-        p4.run_add('root-ws/src/file2.txt')
+        # Create a local client from the build template
+        client = p4.fetch_client('-t', clientTemplateId)
+        client['Root'] = f"{os.getcwd()}/{workspaceDir}"
+        p4.save_client(client)
 
-        # Submit changes
+        # Delete workspace if it exists
+        if os.path.exists(workspaceDir):
+            shutil.rmtree(workspaceDir)
+        # Create workspace with intitial depo state
+        shutil.copytree('init_depo', workspaceDir)
+
+        # Reconcile and submit any changes required
+        p4.run_reconcile(f"//{remoteRoot}/...")
         change = p4.fetch_change()
-        change._description = "Initial setup of files"
+        change._description = "Setting to initial state"
         p4.run_submit(change)
-        
-        # Disconnect
+
+        # Close perforce connection
         p4.disconnect()
 
         print("Initial depot setup completed")
