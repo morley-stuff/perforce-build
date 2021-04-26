@@ -1,0 +1,14 @@
+{
+    "perforceUser"      : "root",
+    "perforcePassword"  : "p@ssw0rd",
+    "perforcePort"      : "perforce.sample.com:1666",
+
+    "smtpServer"        : "smtp.gmail.com",
+    "smtpPort"          : 465,
+    "emailAddress"      : "sample@gmail.com",
+    "emailPassword"     : "password",
+
+    "defaultRecipients" : [
+        "sample@gmail.com"
+    ]
+}
