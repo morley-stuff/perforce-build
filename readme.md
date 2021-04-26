@@ -1,19 +1,19 @@
 Requirements
- - python3
- - sh
+ - Python 3
 
-These python scripts are serve the purpose of testing the build script at perforce_build.py
+This project utilizes the python script 'perforce_build.py' to perform the build for a project stored in perforce.
 
-A fake project is mocked where the build just concats 2 files and stamps it with the current date, pushing it to bin as output.txt
+Access credentials to the Perforce server and an SMTP server for sending build notifications can be configured within the file 'config.json' as seen in 'config.json.sample'
 
-Running orchestrator.py will flow through the full integration test case.
-This consists of:
-    - Delete everything from perforce depot for a clean slate start
-    - Copy the files from resources dir to create standard project layout
-    - Perform build (Build should pass and submit build change)
-    - Apply a safe change to the project (Just appending some text to one of our src text files)
-    - Perform build (Build should pass and submit built change)
-    - Apply a breaking change to the project (Rename one of the text files that the build is expecting)
-    - Perform build (Build should fail, and send out email notification)
-    - Apply a change that fixes the project (Reverses rename)
-    - Perform build (Build should pass and submit built change)
+The script assumes a layout similar to:
+-depot/
+  -src/
+  -bin/
+  -build.sh
+  -build.bat 
+
+build.sh / build.bat will be run dependant on the host operating system.
+
+On failure a notification with information about recent changes to the perforce project is sent out to the recipients specified in 'config.json'
+
+This project also contains a full integration test scenario for the build script as 'test_suite.py'. The test suite sets up a perforce project in a default state and then performs various changes against it to confirm the result of the build.
