@@ -94,22 +94,6 @@ def perforceSafeSubmit(p4, reconcilePattern, changeDesc):
     except P4Exception as e:
         # Ignore warning 'no file(s) to reconcile.'
         if 'no file(s) to reconcile' in str(e):
-            print(str(e))
-            print("No changes to submit")
-        else:
-            raise(e)
-
-
-def perforceSubmitBinChanges(p4):
-    try:
-        p4.run_reconcile(f"//{remoteRoot}/bin/...")
-        change = p4.fetch_change()
-        change._description = "Project build"
-        p4.run_submit(change)
-    except P4Exception as e:
-        # Warning "No files to reconcile" throws an exception so let's ignore it
-        #   and print some nicer output.
-        if 'Error' not in str(e):
             print("No changes to submit")
         else:
             raise(e)
@@ -146,7 +130,7 @@ def build():
             # Submit any changes in bin directory
             print("Build Success")
             print("Publishing updated 'binaries'...")
-            perforceSubmitBinChanges(p4)
+            perforceSafeSubmit(p4, f"//{remoteRoot}/...", "Project Build")
             
         p4.disconnect()
     except P4Exception as e:
