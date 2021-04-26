@@ -1,4 +1,5 @@
 echo off
+mkdir -p bin
 echo "Building file 1..."
 type src\file1.txt > bin\output.txt || exit 1
 echo "Building file 2..."

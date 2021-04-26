@@ -44,7 +44,7 @@ def setupClient(p4, clientTemplate, workspaceDir):
 
     # Create local workspace if it doesn't exist
     if not Path(workspaceDir).exists():
-        Path.mkdir(workspaceDir)
+        Path(workspaceDir).mkdir()
 
 def constructFailureNotification(p4, buildResult):
     notificationBody  = "The project build has failed\n\n"
@@ -60,6 +60,7 @@ def constructFailureNotification(p4, buildResult):
     # STDOUT / STDERR from build execution
     notificationBody += "STDOUT:\n" + buildResult.stdout.decode("utf-8") + '\n'
     notificationBody += "STDERR:\n" + buildResult.stderr.decode("utf-8") + '\n'
+    return notificationBody
 
 def sendEmail(config, subject, content):
     # Construct msg
