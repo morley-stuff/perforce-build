@@ -1,9 +1,9 @@
-import pprint
 import os
 import shutil
 import subprocess
 import smtplib, ssl
 import json
+from pathlib import Path
 from P4 import P4, P4Exception
 from email.message import EmailMessage
 
@@ -39,12 +39,12 @@ def perforceLogin(config):
 def setupClient(p4, clientTemplate, workspaceDir):
     # Create a local client from the build template
     client = p4.fetch_client('-t', clientTemplate)
-    client['Root'] = f"{os.getcwd()}/{workspaceDir}"
+    client['Root'] = f"{Path.cwd()}/{workspaceDir}"
     p4.save_client(client)
 
     # Create local workspace if it doesn't exist
-    if not os.path.exists(workspaceDir):
-        os.makedirs(workspaceDir)
+    if not Path(workspaceDir).exists():
+        Path.mkdir(workspaceDir)
 
 def constructFailureNotification(p4, buildResult):
     notificationBody  = "The project build has failed\n\n"

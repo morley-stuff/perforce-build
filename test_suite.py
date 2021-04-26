@@ -1,4 +1,5 @@
 import os, shutil
+from pathlib import Path
 from perforce_build import build
 from perforce_build import loadConfig, perforceLogin, setupClient, perforceSafeSubmit
 from perforce_build import clientTemplate, workspaceDir, remoteRoot
@@ -28,7 +29,7 @@ def perforce_change(config, change):
         # Perform change and submit
         if (change == 'init'):
             # Delete workspace if it exists
-            if os.path.exists(workspaceDir):
+            if Path(workspaceDir).exists():
                 shutil.rmtree(workspaceDir)
             
             # Create workspace with intitial depo state
@@ -41,7 +42,7 @@ def perforce_change(config, change):
         
         elif (change == 'good'):
             # Make a change to src files
-            f = open(f"{workspaceDir}/src/file1.txt", 'a')
+            f = open(Path(workspaceDir).joinpath('src').joinpath('file1.txt'), 'a')
             f.write("This is a good change\n")
             f.close()
 
@@ -52,7 +53,7 @@ def perforce_change(config, change):
 
         elif (change == 'bad'):
                 # Make a change to src files
-                os.rename(f"{workspaceDir}/src/file2.txt", f"{workspaceDir}/src/file3.txt")
+                Path(f"{workspaceDir}/src/file2.txt").rename(f"{workspaceDir}/src/file3.txt")
 
                 # Reconcile and submit any changes required
                 perforceSafeSubmit(p4, f"//{remoteRoot}/src/...", "This change introduces an error")
@@ -61,7 +62,7 @@ def perforce_change(config, change):
 
         elif (change == 'fix'):
             # Make a change to src files
-            os.rename(f"{workspaceDir}/src/file3.txt", f"{workspaceDir}/src/file2.txt")
+            Path(f"{workspaceDir}/src/file3.txt").rename(f"{workspaceDir}/src/file2.txt")
 
             # Reconcile and submit any changes required
             perforceSafeSubmit(p4, f"//{remoteRoot}/src/...", "This change fixes the error introduced previously")
