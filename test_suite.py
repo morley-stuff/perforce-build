@@ -9,6 +9,16 @@ def perforce_change(config, change):
         # Login to perforce with details from config
         p4 = perforceLogin(config)
 
+        # Ensure the build client exists for templating
+        try:
+            template = p4.fetch_client(clientTemplate)
+            template['Host'] = ''
+            template['View'] = f"//{remoteRoot}/... //{clientTemplate}/..."
+            template['Options'] = 'allwrite noclobber nocompress unlocked nomodtime normdir'
+            p4.save_client(template)
+        except P4Exception as e:
+            print(e)
+
         # Setup client
         setupClient(p4, clientTemplate, workspaceDir)
 
